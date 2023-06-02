@@ -39,7 +39,7 @@ namespace RabbitClient
         private async Task RunApplication()
         {
             StartMessageConsumption();
-            await SendMessageToClientAfterDelay("This is a scdehuled message from client");
+            await SendMessageToClientAfterDelay();
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
         }
@@ -59,13 +59,14 @@ namespace RabbitClient
             var message = Encoding.UTF8.GetString(e.Body.ToArray());
             LogMessage($"Received message from service: {message}");
             _channel.BasicAck(e.DeliveryTag, multiple: false);
+            LogMessage("Acknowledgment sent to the server.");
         }
 
         #endregion
 
         #region Production
 
-        private void SendMessage(string message = "Hello, Serivice!")
+        private void SendMessage(string message = "Hello, Serivice")
         {
             _channel.QueueDeclare(queue: _applicationToServiceQueue, durable: false, exclusive: false, autoDelete: false, arguments: null);
             var body = Encoding.UTF8.GetBytes(message);
@@ -73,13 +74,17 @@ namespace RabbitClient
             LogMessage($"Sent message to service: {message}");
         }
 
-        private async Task SendMessageToClientAfterDelay(string message, int delaySeconds = 30)
+        private async Task SendMessageToClientAfterDelay()
         {
+            int delaySeconds = 10;
+            int counter = 1;
             LogMessage($"This method will keep sending message to the server after a time interval of: {delaySeconds} seconds");
             while (true)
             {
-                await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
+                var message = $"Hello, Serivice {counter}";
+                await Task.Delay(TimeSpan.FromMilliseconds(delaySeconds));
                 SendMessage(message);
+                counter++;
             }
         }
 

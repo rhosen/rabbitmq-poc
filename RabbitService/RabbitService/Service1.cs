@@ -37,7 +37,7 @@ namespace RabbitService
             InitializeLogWriter();
             InitializeConnection();
             StartMessageConsumption();
-            await SendMessageToClientAfterDelay("This is a scheduled message from server");
+            await SendMessageToClientAfterDelay();
         }
 
         protected override void OnStop()
@@ -64,13 +64,14 @@ namespace RabbitService
             var message = Encoding.UTF8.GetString(e.Body.ToArray());
             LogMessage($"Received message from application: {message}");
             _channel.BasicAck(e.DeliveryTag, multiple: false);
+            LogMessage("Acknowledgment sent to the client.");
         }
 
         #endregion
 
         #region Production
 
-        private void SendMessageToApplication(string message = "Hello, application!")
+        private void SendMessageToApplication(string message = "Hello, application")
         {
             _channel.QueueDeclare(queue: _serviceToApplicationQueue, durable: false, exclusive: false, autoDelete: false, arguments: null);
             var body = Encoding.UTF8.GetBytes(message);
@@ -78,13 +79,17 @@ namespace RabbitService
             LogMessage($"Sent message to application: {message}");
         }
 
-        private async Task SendMessageToClientAfterDelay(string message, int delaySeconds = 30)
+        private async Task SendMessageToClientAfterDelay()
         {
+            int delaySeconds = 10;
+            int counter = 1;
             LogMessage($"This method will keep sending message to the client after a time interval of: {delaySeconds} seconds");
             while (true)
             {
-                await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
+                var message = $"Hello, application {counter}";
+                await Task.Delay(TimeSpan.FromMilliseconds(delaySeconds));
                 SendMessageToApplication(message);
+                counter++;
             }
         }
 
