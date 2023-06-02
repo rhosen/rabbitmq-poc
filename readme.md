@@ -103,4 +103,3 @@ You have successfully implemented RabbitMQ in your C# application using this gui
 Remember to handle exceptions, close the channel and connection gracefully, and add any necessary error handling in your production code.
 
 Happy coding!
-```
